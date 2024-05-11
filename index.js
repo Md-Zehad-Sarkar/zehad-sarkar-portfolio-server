@@ -119,39 +119,35 @@ async function run() {
     // });
 
     // ..............................................Add Projects Api..................................
-    app.post(
-      "/api/v1/add-projects",
-
-      async (req, res) => {
-        try {
-          const body = req.body;
-          const projects = await projectsCollection.insertOne({
-            ...body,
-            createdAt: new Date().toISOString(),
+    app.post("/api/v1/add-projects", async (req, res) => {
+      try {
+        const body = req.body;
+        const projects = await projectsCollection.insertOne({
+          ...body,
+          createdAt: new Date().toISOString(),
+        });
+        if (projects?.insertedId) {
+          res.status(201).json({
+            success: true,
+            message: "Projects Added Successful",
+            projects,
           });
-          if (projects?.insertedId) {
-            res.status(201).json({
-              success: true,
-              message: "Projects Added Successful",
-              projects,
-            });
-          } else {
-            res.status(500).json({
-              success: true,
-              message: "Projects Added failed",
-              projects,
-            });
-          }
-        } catch (error) {
-          console.log(error);
+        } else {
           res.status(500).json({
             success: true,
             message: "Projects Added failed",
             projects,
           });
         }
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({
+          success: true,
+          message: "Projects Added failed",
+          projects,
+        });
       }
-    );
+    });
 
     // ..............................................Get Projects Api..................................
     app.get("/api/v1/projects", async (req, res) => {
