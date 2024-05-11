@@ -26,3 +26,5 @@ const projectValidationSchema = z.object({
   serverLink: z.string(),
   clientLink: z.string(),
 });
+
+module.exports = projectValidationSchema;

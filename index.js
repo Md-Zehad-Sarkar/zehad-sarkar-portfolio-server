@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const authGuard = require("./utls/authGuard");
+const projectValidationSchema = require("./utls/projectValidation");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -41,53 +44,88 @@ async function run() {
     // Api's
     // ........................Create Admin Api...........................
     app.post("/api/v1/create-user/admin", async (req, res) => {
-      const { name, email, password } = req.body;
+      try {
+        const { name, email, password } = req.body;
 
-      const existingAdmin = await userCollection.findOne({ email });
+        const existingAdmin = await userCollection.findOne({ email });
 
-      // bcrypt password
-      const passwordHashed = await bcrypt.hash(
-        password,
-        Number(process.env.BCRYPT_SALT)
-      );
+        // bcrypt password
+        const passwordHashed = await bcrypt.hash(
+          password,
+          Number(process.env.BCRYPT_SALT)
+        );
 
-      // Checking existing admin
-      if (!existingAdmin && passwordHashed) {
-        const createAdmin = await userCollection.insertOne({
-          name,
-          email,
-          password: passwordHashed,
-          role: "admin",
-        });
-        res.status(201).json({
-          success: true,
-          message: "You Have Successfully Created The Admin",
-          createAdmin,
-        });
-      } else {
-        return res
+        // Checking existing admin
+        if (!existingAdmin && passwordHashed) {
+          const createAdmin = await userCollection.insertOne({
+            name,
+            email,
+            password: passwordHashed,
+            role: "admin",
+          });
+          res.status(201).json({
+            success: true,
+            message: "You Have Successfully Created The Admin",
+            createAdmin,
+          });
+        } else {
+          return res
+            .status(500)
+            .json({ success: false, message: "This Admin Already Exist" });
+        }
+      } catch (error) {
+        res
           .status(500)
-          .json({ success: false, message: "This Admin Already Exist" });
+          .json({ success: false, message: "Admin Created Failed" });
       }
     });
 
     // .............................Login Admin Api.....................................
     app.post("/api/v1/login-users", async (req, res) => {
-      const { email, password } = req.body;
+      try {
+        const { email, password } = req.body;
 
-      const users = await userCollection.findOne(
-        { email },
-        { _id: 0, role: 0 }
-      );
+        const users = await userCollection.findOne(
+          { email },
+          { _id: 0, role: 0 }
+        );
 
-      if (users?.email !== email) {
-        res.status(500).json({ success: false, message: "Invalid User Email" });
-      } else {
-        const comparePassword = await bcrypt.compare(password, users.password);
+        if (!users && users?.email !== email) {
+          return res
+            .status(500)
+            .json({ success: false, message: "Invalid User Email" });
+        } else {
+          const isValidPassword = await bcrypt.compare(
+            password,
+            users?.password
+          );
 
+          if (isValidPassword) {
+            const token = jwt.sign(
+              {
+                id: users?._id,
+                email: users?.email,
+                name: users?.name,
+              },
+              process.env.JWT_SECRET,
+              { expiresIn: process.env.JWT_EXPIRESIN }
+            );
+            res.status(200).json({
+              success: true,
+              message: "User Login Successful",
+              accessToken: token,
+            });
+          } else {
+            res
+              .status(401)
+              .json({ success: false, message: "Unauthorized Access" });
+          }
+        }
+      } catch (error) {
+        // console.log(error);
         res
-          .status(200)
-          .json({ success: true, message: "User Login Successful" });
+          .status(401)
+          .json({ success: false, message: "Unauthorized Access" });
       }
     });
 
@@ -214,7 +252,7 @@ async function run() {
     });
 
     // ..............................................Get Blogs Api..................................
-    app.get("/api/v1/blogs", async (req, res) => {
+    app.get("/api/v1/blogs", authGuard, async (req, res) => {
       try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
