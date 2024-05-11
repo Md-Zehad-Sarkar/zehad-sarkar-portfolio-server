@@ -118,7 +118,7 @@ async function run() {
     //   }
     // });
 
-    // ..............................................Add Projects api..................................
+    // ..............................................Add Projects Api..................................
     app.post(
       "/api/v1/add-projects",
 
@@ -153,7 +153,7 @@ async function run() {
       }
     );
 
-    // ..............................................Get Projects api..................................
+    // ..............................................Get Projects Api..................................
     app.get("/api/v1/projects", async (req, res) => {
       try {
         const page = Number(req.query.page) || 1;
@@ -179,6 +179,33 @@ async function run() {
             data: [],
             page: 0,
             limit: 0,
+          });
+        }
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({
+          success: false,
+          message: "Internal Server Error",
+        });
+      }
+    });
+
+    // ..............................................Create Blogs Api..................................
+    app.post("/api/v1/add-blogs", async (req, res) => {
+      try {
+        const body = req.body;
+        console.log(body);
+        const blogs = await blogsCollection.insertOne(body);
+        if (blogs?.insertedId) {
+          res.status(201).json({
+            success: true,
+            message: "Blogs Has Been Added Successful",
+            blogs,
+          });
+        } else {
+          res.status(500).json({
+            success: false,
+            message: "Blogs Added Failed",
           });
         }
       } catch (error) {
