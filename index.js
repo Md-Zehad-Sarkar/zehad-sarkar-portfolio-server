@@ -4,7 +4,7 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const authGuard = require("./utls/authGuard");
-const projectValidationSchema = require("./utls/projectValidation");
+const projectValidationMiddleware = require("./utls/projectValidation");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -39,6 +39,7 @@ async function run() {
     const userCollection = db.collection("users");
     const projectsCollection = db.collection("projects");
     const blogsCollection = db.collection("blogs");
+    const skillsCollection = db.collection("skills");
     // ................................Database Collections.....................................
 
     // Api's
@@ -157,35 +158,39 @@ async function run() {
     // });
 
     // ..............................................Add Projects Api..................................
-    app.post("/api/v1/add-projects", async (req, res) => {
-      try {
-        const body = req.body;
-        const projects = await projectsCollection.insertOne({
-          ...body,
-          createdAt: new Date().toISOString(),
-        });
-        if (projects?.insertedId) {
-          res.status(201).json({
-            success: true,
-            message: "Projects Added Successful",
-            projects,
+    app.post(
+      "/api/v1/add-projects",
+      projectValidationMiddleware,
+      async (req, res) => {
+        try {
+          const body = req.body;
+
+          const projects = await projectsCollection.insertOne({
+            ...body,
+            createdAt: new Date().toISOString(),
           });
-        } else {
+
+          if (projects?.insertedId) {
+            res.status(201).json({
+              success: true,
+              message: "Projects Added Successful",
+              projects,
+            });
+          } else {
+            res.status(500).json({
+              success: true,
+              message: "Projects Added failed",
+            });
+          }
+        } catch (error) {
+          console.log(error);
           res.status(500).json({
             success: true,
-            message: "Projects Added failed",
-            projects,
+            message: "Something Went Wrong",
           });
         }
-      } catch (error) {
-        console.log(error);
-        res.status(500).json({
-          success: true,
-          message: "Projects Added failed",
-          projects,
-        });
       }
-    });
+    );
 
     // ..............................................Get Projects Api..................................
     app.get("/api/v1/projects", async (req, res) => {
@@ -285,6 +290,36 @@ async function run() {
         res.status(500).json({
           success: true,
           message: "Internal Server Error",
+        });
+      }
+    });
+
+    // ..............................................Add Skill Api..................................
+    app.post("/api/v1/add-skills", async (req, res) => {
+      try {
+        const body = req.body;
+
+        const skills = await skillsCollection.insertOne({
+          ...body,
+          createdAt: new Date().toISOString(),
+        });
+        if (skills?.insertedId) {
+          res.status(201).json({
+            success: true,
+            message: "Skills Added Successful",
+            skills,
+          });
+        } else {
+          res.status(500).json({
+            success: false,
+            message: "Skills Added Failed",
+          });
+        }
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({
+          success: false,
+          message: "Something Went Wrong",
         });
       }
     });
