@@ -323,6 +323,70 @@ async function run() {
         });
       }
     });
+
+    // ..............................................Get Skill Api..................................
+    app.get("/api/v1/skills", async (req, res) => {
+      try {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        const skills = await skillsCollection
+          .find()
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        if (skills?.length > 0) {
+          res.status(200).json({
+            success: true,
+            message: "Skills Retrieved Successful",
+            data: skills,
+            page: page,
+            limit: limit,
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+            message: "Something Went Wrong",
+          });
+        }
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({
+          success: false,
+          message: "Something Went Wrong",
+        });
+      }
+    });
+    // ..............................................Add Course Api..................................
+    app.post("/api/v1/add-course", async (req, res) => {
+      try {
+        const body = req.body;
+
+        const skills = await skillsCollection.insertOne({
+          ...body,
+          createdAt: new Date().toISOString(),
+        });
+        if (skills?.insertedId) {
+          res.status(201).json({
+            success: true,
+            message: "Skills Added Successful",
+            skills,
+          });
+        } else {
+          res.status(500).json({
+            success: false,
+            message: "Skills Added Failed",
+          });
+        }
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({
+          success: false,
+          message: "Something Went Wrong",
+        });
+      }
+    });
   } finally {
     // await client.close();
   }
