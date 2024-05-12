@@ -33,17 +33,16 @@ async function run() {
       `Welcome to 'Zehad Sarkar' Portfolio DB. You successfully connected to MongoDB!`
     );
 
-    // ................................Database Collections.....................................
-
+    // ................................Database Collections start.....................................
     const db = client.db("portfolio");
     const userCollection = db.collection("users");
     const projectsCollection = db.collection("projects");
     const blogsCollection = db.collection("blogs");
     const skillsCollection = db.collection("skills");
     const courseCollection = db.collection("courses");
-    // ................................Database Collections.....................................
+    // ................................Database Collections end.....................................
 
-    // Api's
+    //....................................... Api's ............................................
     // ........................Create Admin Api...........................
     app.post("/api/v1/create-user/admin", async (req, res) => {
       try {
