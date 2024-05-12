@@ -40,6 +40,7 @@ async function run() {
     const projectsCollection = db.collection("projects");
     const blogsCollection = db.collection("blogs");
     const skillsCollection = db.collection("skills");
+    const courseCollection = db.collection("courses");
     // ................................Database Collections.....................................
 
     // Api's
@@ -358,25 +359,26 @@ async function run() {
         });
       }
     });
+    
     // ..............................................Add Course Api..................................
     app.post("/api/v1/add-course", async (req, res) => {
       try {
         const body = req.body;
 
-        const skills = await skillsCollection.insertOne({
+        const course = await courseCollection.insertOne({
           ...body,
           createdAt: new Date().toISOString(),
         });
-        if (skills?.insertedId) {
+        if (course?.insertedId) {
           res.status(201).json({
             success: true,
-            message: "Skills Added Successful",
-            skills,
+            message: "Course Added Successful",
+            course,
           });
         } else {
           res.status(500).json({
             success: false,
-            message: "Skills Added Failed",
+            message: "Course Added Failed",
           });
         }
       } catch (error) {
