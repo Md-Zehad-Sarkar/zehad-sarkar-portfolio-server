@@ -9,7 +9,12 @@ const projectValidationMiddleware = require("./utls/projectValidation");
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://zehad-sarkar-developer-portfolio.vercel.app"],
+    credentials: "true",
+  })
+);
 app.use(express.json());
 
 // mongodb setup start.............................................................................
@@ -130,32 +135,33 @@ async function run() {
       }
     });
 
-    // // .............................Get User Info Api............................................
-    // app.get("/api/v1/users", async (req, res) => {
-    //   try {
-    //     const users = await userCollection.find().toArray();
+    // .............................Get User Info Api............................................
+    app.get("/api/v1/users", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const users = await userCollection.findOne({ email });
 
-    //     if (users.length > 0) {
-    //       res.status(200).json({
-    //         success: true,
-    //         message: "Users Retrieved Successful",
-    //         data: users,
-    //       });
-    //     } else {
-    //       res.status(404).json({
-    //         success: false,
-    //         message: "No Users Found",
-    //         data: [],
-    //       });
-    //     }
-    //   } catch (error) {
-    //     console.log("users-error", error);
-    //     res.status(500).json({
-    //       success: false,
-    //       message: "Internal server error",
-    //     });
-    //   }
-    // });
+        if (users.email) {
+          res.status(200).json({
+            success: true,
+            message: "Users Retrieved Successful",
+            data: users,
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+            message: "No Users Found",
+            data: [],
+          });
+        }
+      } catch (error) {
+        console.log("users-error", error);
+        res.status(500).json({
+          success: false,
+          message: "Internal server error",
+        });
+      }
+    });
 
     // ..............................................Add Projects Api..................................
     app.post(
@@ -433,7 +439,7 @@ async function run() {
 run().catch(console.dir);
 // mongodb setup end................................................................................
 
-app.get("/api/v1", (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Congratulations! Your Server Running Perfectly",
