@@ -233,8 +233,11 @@ async function run() {
     app.post("/api/v1/add-blogs", async (req, res) => {
       try {
         const body = req.body;
-        console.log(body);
-        const blogs = await blogsCollection.insertOne(body);
+
+        const blogs = await blogsCollection.insertOne({
+          ...body,
+          author: "Md. Zehad Sarkar",
+        });
         if (blogs?.insertedId) {
           res.status(201).json({
             success: true,
@@ -257,7 +260,7 @@ async function run() {
     });
 
     // ..............................................Get Blogs Api..................................
-    app.get("/api/v1/blogs", authGuard, async (req, res) => {
+    app.get("/api/v1/blogs", async (req, res) => {
       try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
@@ -328,7 +331,7 @@ async function run() {
     app.get("/api/v1/skills", async (req, res) => {
       try {
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 10;
+        const limit = Number(req.query.limit) || 30;
         const skip = (page - 1) * limit;
         const skills = await skillsCollection
           .find()
