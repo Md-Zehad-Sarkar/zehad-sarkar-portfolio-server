@@ -11,7 +11,10 @@ const port = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: ["https://zehad-sarkar-developer-portfolio.vercel.app"],
+    origin: [
+      "https://zehad-sarkar-developer-portfolio.vercel.app",
+      "http://localhost:3000",
+    ],
     credentials: "true",
   })
 );
@@ -112,6 +115,7 @@ async function run() {
                 id: users?._id,
                 email: users?.email,
                 name: users?.name,
+                role: users?.role,
               },
               process.env.JWT_SECRET,
               { expiresIn: process.env.JWT_EXPIRESIN }
