@@ -12,12 +12,13 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      "https://zehad-sarkar-developer-portfolio.vercel.app",
+      "https: //zehad-sarkar-devloper-portfolio.vercel.app",
       "http://localhost:3000",
     ],
-    credentials: "true",
+    // credentials: "true",
   })
 );
+
 app.use(express.json());
 
 // mongodb setup start.............................................................................
@@ -93,11 +94,7 @@ async function run() {
     app.post("/api/v1/login-users", async (req, res) => {
       try {
         const { email, password } = req.body;
-
-        const users = await userCollection.findOne(
-          { email },
-          { _id: 0, role: 0 }
-        );
+        const users = await userCollection.findOne({ email });
 
         if (!users && users?.email !== email) {
           return res
@@ -112,7 +109,6 @@ async function run() {
           if (isValidPassword) {
             const token = jwt.sign(
               {
-                id: users?._id,
                 email: users?.email,
                 name: users?.name,
                 role: users?.role,
@@ -120,6 +116,7 @@ async function run() {
               process.env.JWT_SECRET,
               { expiresIn: process.env.JWT_EXPIRESIN }
             );
+
             res.status(200).json({
               success: true,
               message: "User Login Successful",
@@ -132,13 +129,13 @@ async function run() {
           }
         }
       } catch (error) {
-        // console.log(error);
         res
           .status(401)
           .json({ success: false, message: "Unauthorized Access" });
       }
     });
 
+    
     // .............................Get User Info Api............................................
     app.get("/api/v1/users", async (req, res) => {
       try {
